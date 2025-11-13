@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../utils/logger.dart';
 
 class FaceStorage {
   static const String _keyEmbedding = 'face_embedding';
@@ -10,9 +11,9 @@ class FaceStorage {
       final prefs = await SharedPreferences.getInstance();
       final jsonString = jsonEncode(embedding);
       await prefs.setString(_keyEmbedding, jsonString);
-      print('✅ Face embedding saved (${embedding.length} dimensions)');
+      AppLogger.info('✅ Face embedding saved (${embedding.length} dimensions)');
     } catch (e) {
-      print('Error saving embedding: $e');
+      AppLogger.error('Error saving embedding', e);
     }
   }
 
@@ -27,10 +28,10 @@ class FaceStorage {
       final List<dynamic> decoded = jsonDecode(jsonString);
       final embedding = decoded.map((e) => e as double).toList();
       
-      print('✅ Face embedding loaded (${embedding.length} dimensions)');
+      AppLogger.info('✅ Face embedding loaded (${embedding.length} dimensions)');
       return embedding;
     } catch (e) {
-      print('Error loading embedding: $e');
+      AppLogger.error('Error loading embedding', e);
       return null;
     }
   }
@@ -41,7 +42,7 @@ class FaceStorage {
       final prefs = await SharedPreferences.getInstance();
       return prefs.containsKey(_keyEmbedding);
     } catch (e) {
-      print('Error checking embedding: $e');
+      AppLogger.error('Error checking embedding', e);
       return false;
     }
   }
@@ -51,9 +52,9 @@ class FaceStorage {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_keyEmbedding);
-      print('🗑️ Face embedding cleared');
+      AppLogger.info('🗑️ Face embedding cleared');
     } catch (e) {
-      print('Error clearing embedding: $e');
+      AppLogger.error('Error clearing embedding', e);
     }
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../utils/logger.dart';
 
 class BleService {
   bool _isScanning = false;
@@ -36,7 +37,7 @@ class BleService {
       final state = await FlutterBluePlus.adapterState.first;
       return state == BluetoothAdapterState.on;
     } catch (e) {
-      print('Bluetooth check error: $e');
+      AppLogger.error('Bluetooth check error', e);
       return false;
     }
   }
@@ -54,7 +55,7 @@ class BleService {
           final serviceUuids = result.advertisementData.serviceUuids;
           if (serviceUuids.isNotEmpty) {
             final uuid = serviceUuids.first.toString();
-            print('Detected UUID: $uuid');
+            AppLogger.info('Detected UUID: $uuid');
             onUuidDetected?.call(uuid);
           }
         }
@@ -63,7 +64,7 @@ class BleService {
       // Start scanning
       await FlutterBluePlus.startScan(timeout: const Duration(seconds: 30));
     } catch (e) {
-      print('Scan error: $e');
+      AppLogger.error('Scan error', e);
       _isScanning = false;
     }
   }
@@ -74,7 +75,7 @@ class BleService {
       await FlutterBluePlus.stopScan();
       _isScanning = false;
     } catch (e) {
-      print('Stop scan error: $e');
+      AppLogger.error('Stop scan error', e);
     }
   }
 }

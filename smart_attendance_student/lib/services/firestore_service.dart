@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/logger.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -25,7 +26,7 @@ class FirestoreService {
 
       return null;
     } catch (e) {
-      print('Login error: $e');
+      AppLogger.error('Login error', e);
       return null;
     }
   }
@@ -61,7 +62,7 @@ class FirestoreService {
 
       return null;
     } catch (e) {
-      print('Error checking active session: $e');
+      AppLogger.error('Error checking active session', e);
       return null;
     }
   }
@@ -86,7 +87,7 @@ class FirestoreService {
 
       return false;
     } catch (e) {
-      print('Error verifying enrollment: $e');
+      AppLogger.error('Error verifying enrollment', e);
       return false;
     }
   }
@@ -112,7 +113,7 @@ class FirestoreService {
 
       return true;
     } catch (e) {
-      print('Error logging attendance: $e');
+      AppLogger.error('Error logging attendance', e);
       return false;
     }
   }

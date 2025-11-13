@@ -4,6 +4,10 @@
 
 This guide will help you replace the existing Firebase configuration with your own Firebase project credentials for both Admin and Student apps.
 
+**Current Status**: ✅ Firebase already configured with project `smart-attendance-9fbcb`
+- If you want to use the existing Firebase project, skip to Step 2 (Firestore setup)
+- If you want your own Firebase project, follow all steps below
+
 ---
 
 ## 🎯 Step-by-Step Firebase Setup

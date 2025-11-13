@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
+import '../utils/logger.dart';
 
 class FaceNetModel {
   static const int inputSize = 160;
@@ -12,9 +13,9 @@ class FaceNetModel {
   Future<void> loadModel() async {
     try {
       _interpreter = await Interpreter.fromAsset('assets/models/facenet.tflite');
-      print('✅ FaceNet model loaded');
+      AppLogger.info('✅ FaceNet model loaded');
     } catch (e) {
-      print('❌ Error loading FaceNet model: $e');
+      AppLogger.error('❌ Error loading FaceNet model', e);
     }
   }
 
@@ -25,7 +26,7 @@ class FaceNetModel {
     }
 
     if (_interpreter == null) {
-      print('Model not loaded');
+      AppLogger.warning('Model not loaded');
       return null;
     }
 
@@ -44,7 +45,7 @@ class FaceNetModel {
 
       return output[0].cast<double>();
     } catch (e) {
-      print('Error getting embedding: $e');
+      AppLogger.error('Error getting embedding', e);
       return null;
     }
   }

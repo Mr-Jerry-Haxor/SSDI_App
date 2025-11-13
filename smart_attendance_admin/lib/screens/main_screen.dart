@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import '../services/firestore_service.dart';
 import '../services/ble_service.dart';
+import '../utils/logger.dart';
 
 class MainScreen extends StatefulWidget {
   final String professorId;
@@ -60,7 +61,7 @@ class _MainScreenState extends State<MainScreen> {
         }
       });
     } catch (e) {
-      print('Error loading professor data: $e');
+      AppLogger.error('Error loading professor data', e);
       setState(() {
         _isLoading = false;
       });

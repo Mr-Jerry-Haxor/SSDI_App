@@ -58,6 +58,9 @@ dependencies:
   # Permissions
   permission_handler: ^11.3.1
   
+  # Logging
+  logger: ^2.5.0
+  
   # UUID
   uuid: ^4.5.1
   

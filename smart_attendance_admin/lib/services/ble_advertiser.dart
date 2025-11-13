@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
+import '../utils/logger.dart';
 
 class BleAdvertiser {
   static const MethodChannel _channel = MethodChannel('smart_attendance/ble_advertiser');
@@ -10,7 +11,7 @@ class BleAdvertiser {
       final bool result = await _channel.invokeMethod('startAdvertising', {'uuid': uuid});
       return result;
     } on PlatformException catch (e) {
-      print("Failed to start advertising: ${e.message}");
+      AppLogger.error("Failed to start advertising", e);
       return false;
     }
   }
@@ -21,7 +22,7 @@ class BleAdvertiser {
       final bool result = await _channel.invokeMethod('stopAdvertising');
       return result;
     } on PlatformException catch (e) {
-      print("Failed to stop advertising: ${e.message}");
+      AppLogger.error("Failed to stop advertising", e);
       return false;
     }
   }
@@ -32,7 +33,7 @@ class BleAdvertiser {
       final bool result = await _channel.invokeMethod('isAdvertisingSupported');
       return result;
     } on PlatformException catch (e) {
-      print("Failed to check advertising support: ${e.message}");
+      AppLogger.error("Failed to check advertising support", e);
       return false;
     }
   }

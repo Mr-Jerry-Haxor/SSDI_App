@@ -57,6 +57,9 @@ dependencies:
   
   # Intl for date formatting
   intl: ^0.20.1
+  
+  # Logging
+  logger: ^2.5.0
 
 dev_dependencies:
   flutter_test:

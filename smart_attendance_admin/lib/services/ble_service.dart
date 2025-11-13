@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'ble_advertiser.dart';
+import '../utils/logger.dart';
 
 class BleService {
   // Check and request Bluetooth permissions
@@ -33,36 +34,36 @@ class BleService {
       final state = await FlutterBluePlus.adapterState.first;
       return state == BluetoothAdapterState.on;
     } catch (e) {
-      print('Bluetooth check error: $e');
+      AppLogger.error('Bluetooth check error', e);
       return false;
     }
   }
 
   // Start advertising using platform channel
   Future<void> startAdvertising(String uuid) async {
-    print('Start advertising UUID: $uuid');
+    AppLogger.info('Start advertising UUID: $uuid');
     
     if (Platform.isAndroid) {
       final success = await BleAdvertiser.startAdvertising(uuid);
       if (success) {
-        print('✅ Android BLE advertising started');
+        AppLogger.info('✅ Android BLE advertising started');
       } else {
-        print('❌ Android BLE advertising failed');
+        AppLogger.warning('❌ Android BLE advertising failed');
       }
     } else if (Platform.isIOS) {
       // iOS BLE advertising via platform channel (implemented in BleAdvertiser)
       final success = await BleAdvertiser.startAdvertising(uuid);
       if (success) {
-        print('✅ iOS BLE advertising started');
+        AppLogger.info('✅ iOS BLE advertising started');
       } else {
-        print('❌ iOS BLE advertising failed');
+        AppLogger.warning('❌ iOS BLE advertising failed');
       }
     }
   }
 
   // Stop advertising
   Future<void> stopAdvertising() async {
-    print('Stop advertising');
+    AppLogger.info('Stop advertising');
     
     if (Platform.isAndroid) {
       await BleAdvertiser.stopAdvertising();

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/logger.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -28,7 +29,7 @@ class FirestoreService {
 
       return null;
     } catch (e) {
-      print('Login error: $e');
+      AppLogger.error('Login error', e);
       return null;
     }
   }
@@ -46,7 +47,7 @@ class FirestoreService {
       }
       return [];
     } catch (e) {
-      print('Error fetching courses: $e');
+      AppLogger.error('Error fetching courses', e);
       return [];
     }
   }
@@ -60,7 +61,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      print('Error fetching course: $e');
+      AppLogger.error('Error fetching course', e);
       return null;
     }
   }
@@ -87,7 +88,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      print('Error fetching schedule: $e');
+      AppLogger.error('Error fetching schedule', e);
       return null;
     }
   }
@@ -101,7 +102,7 @@ class FirestoreService {
       }
       return 'Unknown';
     } catch (e) {
-      print('Error fetching semester: $e');
+      AppLogger.error('Error fetching semester', e);
       return 'Unknown';
     }
   }
@@ -132,7 +133,7 @@ class FirestoreService {
       }
       return null;
     } catch (e) {
-      print('Error checking active session: $e');
+      AppLogger.error('Error checking active session', e);
       return null;
     }
   }
@@ -150,7 +151,7 @@ class FirestoreService {
           .doc(date)
           .update({'$uuid.Status': 'Closed'});
     } catch (e) {
-      print('Error closing session: $e');
+      AppLogger.error('Error closing session', e);
     }
   }
 
@@ -174,7 +175,7 @@ class FirestoreService {
         }
       }, SetOptions(merge: true));
     } catch (e) {
-      print('Error writing attendance: $e');
+      AppLogger.error('Error writing attendance', e);
     }
   }
 
@@ -191,7 +192,7 @@ class FirestoreService {
           .doc(date)
           .update({'$uuid.Status': 'Closed'});
     } catch (e) {
-      print('Error updating session: $e');
+      AppLogger.error('Error updating session', e);
     }
   }
 }

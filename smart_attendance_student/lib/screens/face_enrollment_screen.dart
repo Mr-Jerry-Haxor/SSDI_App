@@ -4,6 +4,7 @@ import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image/image.dart' as img;
 import '../services/facenet_model.dart';
 import '../services/face_storage.dart';
+import '../utils/logger.dart';
 import 'main_screen.dart';
 
 class FaceEnrollmentScreen extends StatefulWidget {
@@ -64,7 +65,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
         });
       }
     } catch (e) {
-      print('Camera initialization error: $e');
+      AppLogger.error('Camera initialization error', e);
       _showSnackBar('Camera error: $e', Colors.red);
     }
   }
@@ -139,7 +140,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
         ),
       );
     } catch (e) {
-      print('Face capture error: $e');
+      AppLogger.error('Face capture error', e);
       _showSnackBar('Error: $e', Colors.red);
       setState(() {
         _isProcessing = false;

@@ -7,8 +7,9 @@ Since iOS app development requires macOS and Xcode, follow these steps **on a Ma
 ### 1. System Requirements
 - **macOS** 13.0 (Ventura) or later
 - **Xcode** 15.0 or later
-- **Flutter SDK** 3.9.2 or later
+- **Flutter SDK** 3.35.7 or later (currently using 3.35.7)
 - **CocoaPods** 1.11 or later
+- **Apple Developer Account** (free or paid)
 
 ### 2. Install Required Tools on Mac
 
@@ -84,6 +85,12 @@ open Runner.xcworkspace
    - Go to "Build Settings" tab
    - Search for "Swift Language Version"
    - Should be set to "Swift 5"
+
+4. **Verify All Files Present**:
+   - Check `BleAdvertiser.swift` in file navigator
+   - Check `AppDelegate.swift` in file navigator
+   - Both should compile without errors
+   - Logger framework already integrated
 
 ### Step 5: Connect iOS Device
 
