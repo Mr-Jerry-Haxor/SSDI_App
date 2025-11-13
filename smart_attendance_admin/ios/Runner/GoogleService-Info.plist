@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyAO6Znu_-1d2UPT1zdC2jEjvEorXBN34YI</string>
+	<key>GCM_SENDER_ID</key>
+	<string>684634883104</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.codecatalyst.smartattendance.smartAttendanceAdmin</string>
+	<key>PROJECT_ID</key>
+	<string>smart-attendance-9fbcb</string>
+	<key>STORAGE_BUCKET</key>
+	<string>smart-attendance-9fbcb.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:684634883104:ios:1658ce209d377d51e46845</string>
+</dict>
+</plist>
