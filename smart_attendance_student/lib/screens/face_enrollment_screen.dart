@@ -34,7 +34,19 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
   void initState() {
     super.initState();
     _initializeCamera();
-    _faceNetModel.loadModel();
+    _loadFaceNetModel();
+  }
+  
+  Future<void> _loadFaceNetModel() async {
+    try {
+      final loaded = await _faceNetModel.loadModel();
+      if (!loaded) {
+        _showSnackBar('Failed to load face recognition model', Colors.red);
+      }
+    } catch (e) {
+      AppLogger.error('Error loading FaceNet model', e);
+      _showSnackBar('Error loading face recognition model', Colors.red);
+    }
   }
 
   Future<void> _initializeCamera() async {
@@ -71,7 +83,10 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
   }
 
   Future<void> _captureFace() async {
-    if (_isProcessing || _cameraController == null) return;
+    if (_isProcessing || _cameraController == null || !_isCameraInitialized || !(_cameraController!.value.isInitialized)) {
+      _showSnackBar('Camera not ready. Please wait...', Colors.orange);
+      return;
+    }
 
     setState(() {
       _isProcessing = true;
@@ -103,28 +118,45 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
         return;
       }
 
-      // Crop face
+      // Crop face with proper bounds
       final face = faces.first;
       final faceRect = face.boundingBox;
       
+      AppLogger.debug('Face detected at: ${faceRect.left}, ${faceRect.top}, ${faceRect.width}x${faceRect.height}');
+      AppLogger.debug('Image size: ${capturedImage.width}x${capturedImage.height}');
+      
+      // Calculate crop bounds with padding
+      final padding = 20; // Add padding around face
+      final x = (faceRect.left.toInt() - padding).clamp(0, capturedImage.width - 1);
+      final y = (faceRect.top.toInt() - padding).clamp(0, capturedImage.height - 1);
+      final width = (faceRect.width.toInt() + 2 * padding).clamp(1, capturedImage.width - x);
+      final height = (faceRect.height.toInt() + 2 * padding).clamp(1, capturedImage.height - y);
+      
+      AppLogger.debug('Cropping face: x=$x, y=$y, w=$width, h=$height');
+      
       final croppedFace = img.copyCrop(
         capturedImage,
-        x: faceRect.left.toInt().clamp(0, capturedImage.width),
-        y: faceRect.top.toInt().clamp(0, capturedImage.height),
-        width: faceRect.width.toInt().clamp(0, capturedImage.width - faceRect.left.toInt()),
-        height: faceRect.height.toInt().clamp(0, capturedImage.height - faceRect.top.toInt()),
+        x: x,
+        y: y,
+        width: width,
+        height: height,
       );
+      
+      AppLogger.debug('Face cropped: ${croppedFace.width}x${croppedFace.height}');
 
       // Get embedding
+      _showSnackBar('Processing face...', Colors.blue);
       final embedding = await _faceNetModel.getEmbedding(croppedFace);
 
-      if (embedding == null) {
-        _showSnackBar('Failed to generate face embedding', Colors.red);
+      if (embedding == null || embedding.isEmpty) {
+        _showSnackBar('Failed to generate face embedding. Please try again.', Colors.red);
         setState(() {
           _isProcessing = false;
         });
         return;
       }
+      
+      AppLogger.info('Face embedding generated successfully with ${embedding.length} dimensions');
 
       // Save embedding
       await FaceStorage.saveEmbedding(embedding);
