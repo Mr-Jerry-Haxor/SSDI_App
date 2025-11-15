@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
+import 'screens/admin_settings_screen.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -30,6 +31,10 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           useMaterial3: true,
         ),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/admin_settings': (context) => const AdminSettingsScreen(),
+        },
         home: Consumer<AuthService>(
           builder: (context, authService, _) {
             if (authService.isAuthenticated) {

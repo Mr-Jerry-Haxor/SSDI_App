@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image/image.dart' as img;
+import 'package:permission_handler/permission_handler.dart';
 import '../services/facenet_model.dart';
 import '../services/face_storage.dart';
 import '../utils/logger.dart';
@@ -29,6 +30,7 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
   
   bool _isProcessing = false;
   bool _isCameraInitialized = false;
+  bool _cameraPermissionDenied = false;
 
   @override
   void initState() {
@@ -51,6 +53,15 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
 
   Future<void> _initializeCamera() async {
     try {
+      // Check camera permission first
+      final status = await Permission.camera.status;
+      if (status.isDenied) {
+        setState(() {
+          _cameraPermissionDenied = true;
+        });
+        return;
+      }
+      
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
         _showSnackBar('No camera available', Colors.red);
@@ -79,6 +90,24 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
     } catch (e) {
       AppLogger.error('Camera initialization error', e);
       _showSnackBar('Camera error: $e', Colors.red);
+    }
+  }
+
+  Future<void> _requestCameraPermission() async {
+    final status = await Permission.camera.request();
+    if (status.isGranted) {
+      setState(() {
+        _cameraPermissionDenied = false;
+      });
+      await _initializeCamera();
+    } else if (status.isPermanentlyDenied) {
+      _showSnackBar(
+        'Camera permission permanently denied. Please enable it in Settings.',
+        Colors.red,
+      );
+      openAppSettings();
+    } else {
+      _showSnackBar('Camera permission is required to enroll face', Colors.orange);
     }
   }
 
@@ -199,6 +228,60 @@ class _FaceEnrollmentScreenState extends State<FaceEnrollmentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Show permission request UI if camera permission is denied
+    if (_cameraPermissionDenied) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Face Enrollment'),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.camera_alt_outlined,
+                  size: 80,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Camera Permission Required',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'We need camera access to capture your face for attendance verification.',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: _requestCameraPermission,
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Grant Camera Permission'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Face Enrollment'),

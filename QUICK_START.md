@@ -16,6 +16,7 @@ flutter doctor -v
 ## 📱 Run Admin App (Professor)
 
 ### Android
+
 ```bash
 cd "d:\USA Assignments\sahasra\SSDI_App\smart_attendance_admin"
 flutter pub get
@@ -23,6 +24,7 @@ flutter run
 ```
 
 ### iOS (macOS only)
+
 ```bash
 cd "d:\USA Assignments\sahasra\SSDI_App\smart_attendance_admin"
 flutter pub get
@@ -35,6 +37,7 @@ flutter run
 ## 📱 Run Student App
 
 ### Android
+
 ```bash
 cd "d:\USA Assignments\sahasra\SSDI_App\smart_attendance_student"
 flutter pub get
@@ -42,6 +45,7 @@ flutter run
 ```
 
 ### iOS (macOS only)
+
 ```bash
 cd "d:\USA Assignments\sahasra\SSDI_App\smart_attendance_student"
 flutter pub get
@@ -54,16 +58,19 @@ flutter run
 Use your existing Firebase data:
 
 ### Professor Login
+
 - Email: (from your Professor collection)
 - Password: (from your Professor collection)
 
 ### Student Login
+
 - Email: (from your student collection)
 - Password: (from your student collection)
 
 ## 📋 Testing Flow
 
 ### 1. Professor Side (Admin App)
+
 1. Login with professor credentials
 2. Select a course
 3. Tap "Start Attendance Session"
@@ -71,6 +78,7 @@ Use your existing Firebase data:
 5. Keep app open
 
 ### 2. Student Side (Student App)
+
 1. Login with student credentials
 2. Enroll face (camera capture) - first time only
 3. App automatically scans for BLE sessions
@@ -80,6 +88,7 @@ Use your existing Firebase data:
 ## 🛠️ Troubleshooting
 
 ### "No device found"
+
 ```bash
 # List connected devices
 flutter devices
@@ -89,10 +98,12 @@ flutter run -d <device-id>
 ```
 
 ### Bluetooth Permissions
+
 - Go to Settings → Apps → Smart Attendance
 - Enable all permissions (Bluetooth, Location, Camera)
 
 ### Build Errors
+
 ```bash
 # Clean and rebuild
 flutter clean
@@ -101,6 +112,7 @@ flutter run
 ```
 
 ### iOS Pod Issues
+
 ```bash
 cd ios
 rm -rf Pods Podfile.lock
@@ -171,6 +183,6 @@ flutter logs
 
 ## 🎉 You're Ready!
 
-Both apps are fully functional on Android and ready for testing. The iOS admin app just needs BLE advertising implementation (2-3 hours).
+Both apps are fully functional on Android and IOS , ready for testing.
 
 Happy coding! 🚀

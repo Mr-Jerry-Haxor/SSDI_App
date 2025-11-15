@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../services/firestore_service.dart';
 import '../services/ble_service.dart';
 import '../utils/logger.dart';
+import 'attendance_view_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final String professorId;
@@ -217,6 +218,25 @@ class _MainScreenState extends State<MainScreen> {
         title: const Text('Attendance Control'),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.list_alt),
+            tooltip: 'View Attendance',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AttendanceViewScreen(professorId: widget.professorId),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Admin Settings',
+            onPressed: () {
+              Navigator.of(context).pushNamed('/admin_settings');
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {

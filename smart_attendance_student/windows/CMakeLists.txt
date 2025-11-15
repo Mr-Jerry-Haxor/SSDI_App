@@ -31,6 +31,10 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
+# Disable insecure CRT warnings caused by deprecated functions in some
+# third-party C++ headers (e.g. Firebase C++ SDK). This prevents MSVC
+# treating deprecation warnings as errors during the Windows build.
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 
 # Compilation settings that should be applied to most targets.
 #
