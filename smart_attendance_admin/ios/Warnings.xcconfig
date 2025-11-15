@@ -1,0 +1,10 @@
+// Suppress iOS deprecation warnings from third-party dependencies
+// These warnings are from plugins and will be fixed by their maintainers
+
+// Suppress all deprecation warnings for cleaner builds
+// Comment out this line if you want to see deprecation warnings from your own code
+GCC_WARN_DEPRECATED_DECLARATIONS = NO
+
+// Alternative: Keep warnings but reduce noise with specific suppressions
+// Uncomment these lines and comment out the line above to see some warnings
+// WARNING_CFLAGS = $(inherited) -Wno-deprecated-declarations

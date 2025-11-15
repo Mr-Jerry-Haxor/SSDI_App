@@ -36,17 +36,17 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # Firebase
-  firebase_core: ^3.8.1
-  cloud_firestore: ^5.5.2
-  firebase_auth: ^5.3.4
+  firebase_core: ^4.2.1
+  cloud_firestore: ^6.1.0
+  firebase_auth: ^6.1.2
   
   # BLE
-  flutter_blue_plus: ^1.32.12
+  flutter_blue_plus: ^2.0.2
   
   # Camera & ML
   camera: ^0.11.0+2
   google_ml_kit: ^0.20.0
-  tflite_flutter: ^0.11.0
+  tflite_flutter: ^0.12.1
   image: ^4.3.0
   
   # State Management
@@ -56,7 +56,7 @@ dependencies:
   shared_preferences: ^2.3.3
   
   # Permissions
-  permission_handler: ^11.3.1
+  permission_handler: ^12.0.1
   
   # Logging
   logger: ^2.5.0
@@ -76,7 +76,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
