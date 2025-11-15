@@ -117,4 +117,36 @@ class FirestoreService {
       return false;
     }
   }
+
+  // Create student (signup)
+  Future<bool> createStudent({
+    required String studentId,
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+  }) async {
+    try {
+      final docRef = _db.collection('student').doc(studentId);
+
+      final doc = await docRef.get();
+      if (doc.exists) {
+        // Student ID already taken
+        return false;
+      }
+
+      await docRef.set({
+        'Email': email,
+        'password': password,
+        'FirstName': firstName,
+        'LastName': lastName,
+        'StudentID': studentId,
+      });
+
+      return true;
+    } catch (e) {
+      AppLogger.error('Error creating student', e);
+      return false;
+    }
+  }
 }

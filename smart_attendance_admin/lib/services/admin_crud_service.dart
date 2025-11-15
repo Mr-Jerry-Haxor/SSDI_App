@@ -179,13 +179,25 @@ class AdminCRUDService {
       final querySnapshot = await _db.collection('student').get();
       return querySnapshot.docs.map((doc) {
         final data = doc.data();
+        // Normalize student document fields to expected keys used by UI
+        final firstName = (data['FirstName'] as String?) ?? (data['firstName'] as String?) ?? '';
+        final lastName = (data['LastName'] as String?) ?? (data['lastName'] as String?) ?? '';
+        final name = (data['name'] as String?) ?? (('$firstName $lastName').trim());
+        final email = (data['Email'] as String?) ?? (data['email'] as String?) ?? '';
+        final department = (data['Department'] as String?) ?? (data['department'] as String?) ?? '';
+        final enrolledCourses = (data['enrolledCourses'] is List) ? List<String>.from(data['enrolledCourses']) :
+            ((data['StudentsEnrolled'] is List) ? List<String>.from(data['StudentsEnrolled']) : <String>[]);
+
         return {
           'id': doc.id,
-          'Email': data['Email'] ?? '',
-          'FirstName': data['FirstName'] ?? '',
-          'LastName': data['LastName'] ?? '',
-          'studentId': data['studentId'] ?? '',
+          'name': name,
+          'email': email,
+          'FirstName': firstName,
+          'LastName': lastName,
+          'studentId': data['studentId'] ?? data['studentID'] ?? doc.id,
           'password': data['password'] ?? '',
+          'department': department,
+          'enrolledCourses': enrolledCourses,
         };
       }).toList();
     } catch (e) {

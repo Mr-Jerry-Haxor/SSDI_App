@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../services/face_storage.dart';
+import 'signup_screen.dart';
 import '../utils/logger.dart';
 import 'main_screen.dart';
 import 'face_enrollment_screen.dart';
@@ -22,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final _firestoreService = FirestoreService();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -72,9 +74,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         
         // Save to SharedPreferences
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('STUDENT_ID', studentId);
-        await prefs.setString('STUDENT_NAME', studentName);
-        await prefs.setString('STUDENT_EMAIL', result['email']);
+        if (_rememberMe) {
+          await prefs.setString('STUDENT_ID', studentId);
+          await prefs.setString('STUDENT_NAME', studentName);
+          await prefs.setString('STUDENT_EMAIL', result['email']);
+        } else {
+          await prefs.remove('STUDENT_ID');
+          await prefs.remove('STUDENT_NAME');
+          await prefs.remove('STUDENT_EMAIL');
+        }
 
         AppLogger.info('Student logged in: $studentId - $studentName');
 
@@ -272,6 +280,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                         },
                       ),
                       const SizedBox(height: 16),
+
+                      // Remember me
+                      CheckboxListTile(
+                        value: _rememberMe,
+                        onChanged: (v) {
+                          setState(() {
+                            _rememberMe = v ?? false;
+                          });
+                        },
+                        title: const Text('Remember me'),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 8),
                       
                       // Password Field
                       TextFormField(
@@ -392,6 +414,17 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const SignupScreen()),
+                            );
+                          },
+                          child: const Text('Create an account'),
                         ),
                       ),
                     ],

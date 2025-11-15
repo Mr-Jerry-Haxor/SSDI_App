@@ -213,10 +213,22 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Attendance Control'),
         centerTitle: true,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [colorScheme.primary, colorScheme.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.list_alt),
@@ -239,6 +251,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
             onPressed: () {
               Navigator.of(context).pushReplacementNamed('/login');
             },
@@ -246,145 +259,392 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+          ? Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (_professorName != null)
-                    Text(
-                      'Welcome, $_professorName',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                  const SizedBox(height: 24),
-                  
-                  // Course Dropdown
-                  if (_courses.isNotEmpty) ...[
-                    const Text(
-                      'Select Course:',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedCourseId,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
-                      items: _courses.map((course) {
-                        return DropdownMenuItem<String>(
-                          value: course['id'],
-                          child: Text(course['name']),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          _onCourseSelected(value);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Schedule Info
-                  if (_semesterName != null)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Semester: $_semesterName',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            if (_scheduleInfo != null)
-                              Text(
-                                'Schedule: $_scheduleInfo',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 24),
-
-                  // Bluetooth Animation
-                  if (_isAdvertising)
-                    SizedBox(
-                      height: 200,
-                      child: Lottie.asset(
-                        'assets/animations/bluetooth_anim.json',
-                        repeat: true,
-                      ),
-                    ),
-
-                  // UUID Display
-                  if (_advertisedUUID != null && _isAdvertising)
-                    Card(
-                      color: Colors.blue.shade50,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '📡 Advertising UUID:',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _advertisedUUID!,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 24),
-
-                  // Control Buttons
-                  ElevatedButton.icon(
-                    onPressed: _isAdvertising ? null : _startAttendanceSession,
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('Start Attendance Session'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: _isAdvertising ? _stopAttendanceSession : null,
-                    icon: const Icon(Icons.stop),
-                    label: const Text('Stop Attendance Session'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
+                  CircularProgressIndicator(color: colorScheme.primary),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading professor data...',
+                    style: TextStyle(color: Colors.grey.shade600),
                   ),
                 ],
               ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadProfessorData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (_professorName != null)
+                      Card(
+                        elevation: 0,
+                        color: colorScheme.primaryContainer,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 32,
+                                backgroundColor: colorScheme.primary,
+                                child: const Icon(Icons.person, size: 36, color: Colors.white),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Welcome back,',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(
+                                      _professorName!,
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+                    
+                    // Course Selection Card
+                    if (_courses.isNotEmpty) ...[
+                      Card(
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.school, color: colorScheme.primary),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Select Course',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _selectedCourseId,
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.grey.shade50,
+                                ),
+                                isExpanded: true,
+                                items: _courses.map((course) {
+                                    return DropdownMenuItem<String>(
+                                      value: course['id'],
+                                      child: Text(
+                                        course['name'],
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      _onCourseSelected(value);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Schedule Info Card
+                    if (_semesterName != null)
+                      Card(
+                        elevation: 2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.info_outline, color: colorScheme.primary),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Schedule Information',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              _buildInfoRow(Icons.calendar_month, 'Semester', _semesterName!),
+                              if (_scheduleInfo != null) ...[
+                                const SizedBox(height: 12),
+                                _buildInfoRow(Icons.schedule, 'Schedule', _scheduleInfo!),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+
+                    // Session Status Card
+                    if (_isAdvertising)
+                      Card(
+                        elevation: 4,
+                        color: Colors.green.shade50,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.wifi_tethering,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Session Active',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Students can now mark attendance',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.green.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              // Bluetooth Animation
+                              SizedBox(
+                                height: 180,
+                                child: Lottie.asset(
+                                  'assets/animations/bluetooth_anim.json',
+                                  repeat: true,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              // UUID Display
+                              if (_advertisedUUID != null)
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.green.shade300),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(Icons.qr_code, color: Colors.green.shade700),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            'Session UUID:',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      SelectableText(
+                                        _advertisedUUID!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontFamily: 'monospace',
+                                          color: Colors.grey.shade700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    
+                    if (!_isAdvertising && _selectedCourseId != null)
+                      Card(
+                        elevation: 2,
+                        color: Colors.grey.shade50,
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.pause_circle_outline,
+                                size: 64,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No Active Session',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Start a session to enable attendance tracking',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
+
+                    // Control Buttons
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: _isAdvertising
+                          ? ElevatedButton.icon(
+                              key: const ValueKey('stop'),
+                              onPressed: _stopAttendanceSession,
+                              icon: const Icon(Icons.stop_circle, size: 24),
+                              label: const Text('Stop Session'),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 4,
+                              ),
+                            )
+                          : ElevatedButton.icon(
+                              key: const ValueKey('start'),
+                              onPressed: _selectedCourseId == null ? null : _startAttendanceSession,
+                              icon: const Icon(Icons.play_circle, size: 24),
+                              label: const Text('Start Attendance Session'),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: Colors.grey.shade300,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 4,
+                              ),
+                            ),
+                    ),
+                    
+                    if (_selectedCourseId == null && !_isLoading)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 32.0),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(Icons.warning_amber_rounded, size: 64, color: Colors.orange.shade300),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No courses available',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Please contact admin to assign courses',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.grey.shade600),
+        const SizedBox(width: 12),
+        Text(
+          '$label: ',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 15),
+          ),
+        ),
+      ],
     );
   }
 }

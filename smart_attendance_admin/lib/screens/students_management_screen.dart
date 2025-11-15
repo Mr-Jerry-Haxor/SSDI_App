@@ -10,13 +10,42 @@ class StudentsManagementScreen extends StatefulWidget {
 
 class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
   final _crudService = AdminCRUDService();
+  final _searchController = TextEditingController();
   List<Map<String, dynamic>> _students = [];
+  List<Map<String, dynamic>> _filteredStudents = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadStudents();
+    _searchController.addListener(_filterStudents);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterStudents() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _filteredStudents = _students;
+      } else {
+        _filteredStudents = _students.where((student) {
+          final name = (student['name'] ?? '').toLowerCase();
+          final email = (student['email'] ?? '').toLowerCase();
+          final studentId = (student['studentId'] ?? '').toLowerCase();
+          final department = (student['department'] ?? '').toLowerCase();
+          return name.contains(query) ||
+              email.contains(query) ||
+              studentId.contains(query) ||
+              department.contains(query);
+        }).toList();
+      }
+    });
   }
 
   Future<void> _loadStudents() async {
@@ -27,6 +56,7 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
     final students = await _crudService.fetchAllStudents();
     setState(() {
       _students = students;
+      _filteredStudents = students;
       _isLoading = false;
     });
   }
@@ -190,91 +220,292 @@ class _StudentsManagementScreenState extends State<StudentsManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Manage Students'),
         elevation: 2,
+        actions: [
+          if (_students.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Center(
+                child: Chip(
+                  label: Text(
+                    '${_filteredStudents.length} Students',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  backgroundColor: colorScheme.primaryContainer,
+                ),
+              ),
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddEditDialog(),
-        icon: const Icon(Icons.add),
+        icon: const Icon(Icons.person_add),
         label: const Text('Add Student'),
+        backgroundColor: colorScheme.primary,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _students.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No students found\nTap + to add a student',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+      body: Column(
+        children: [
+          // Search Bar
+          if (_students.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: colorScheme.surface,
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search students...',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadStudents,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _students.length,
-                    itemBuilder: (context, index) {
-                      final student = _students[index];
-                      final studentId = student['studentId'] ?? '';
-                      final avatarText = studentId.length >= 2 ? studentId.substring(0, 2).toUpperCase() : (studentId.isNotEmpty ? studentId[0].toUpperCase() : 'S');
-                      
-                      return Card(
-                        elevation: 2,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: Colors.blue,
-                            child: Text(
-                              avatarText,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          ),
-                          title: Text(
-                            student['name'] ?? '',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            '${student['email'] ?? ''}\n${student['department'] ?? ''} • ID: $studentId',
-                          ),
-                          isThreeLine: true,
-                          trailing: PopupMenuButton(
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.edit, size: 20),
-                                    SizedBox(width: 8),
-                                    Text('Edit'),
-                                  ],
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.delete, size: 20, color: Colors.red),
-                                    SizedBox(width: 8),
-                                    Text('Delete', style: TextStyle(color: Colors.red)),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                _showAddEditDialog(student: student);
-                              } else if (value == 'delete') {
-                                _deleteStudent(student['id'], student['name'] ?? '');
-                              }
-                            },
-                          ),
-                        ),
-                      );
-                    },
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: colorScheme.primary, width: 2),
                   ),
                 ),
+              ),
+            ),
+          
+          // List View
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _students.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.person_off, size: 80, color: Colors.grey.shade300),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'No students found',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tap + to add a student',
+                              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _filteredStudents.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.search_off, size: 80, color: Colors.grey.shade300),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'No matching students',
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Try a different search term',
+                                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                                ),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _loadStudents,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _filteredStudents.length,
+                              itemBuilder: (context, index) {
+                                final student = _filteredStudents[index];
+                                final studentId = student['studentId'] ?? '';
+                                final name = student['name'] ?? 'Unknown';
+                                final email = student['email'] ?? '';
+                                final department = student['department'] ?? '';
+                                final enrolledCourses = student['enrolledCourses'] ?? [];
+                                final coursesCount = enrolledCourses is List ? enrolledCourses.length : 0;
+                                
+                                final avatarText = name.isNotEmpty 
+                                    ? name.substring(0, 1).toUpperCase()
+                                    : 'S';
+                                
+                                final colors = [
+                                  Colors.blue,
+                                  Colors.green,
+                                  Colors.purple,
+                                  Colors.orange,
+                                  Colors.teal,
+                                ];
+                                final avatarColor = colors[index % colors.length];
+                                
+                                return Card(
+                                  elevation: 2,
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: InkWell(
+                                    onTap: () => _showAddEditDialog(student: student),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Row(
+                                        children: [
+                                          Hero(
+                                            tag: 'student_${student['id']}',
+                                            child: CircleAvatar(
+                                              radius: 32,
+                                              backgroundColor: avatarColor,
+                                              child: Text(
+                                                avatarText,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  name,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.email, size: 14, color: Colors.grey.shade600),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Text(
+                                                        email,
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.grey.shade700,
+                                                        ),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.badge, size: 14, color: Colors.grey.shade600),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'ID: $studentId',
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: Colors.grey.shade700,
+                                                      ),
+                                                    ),
+                                                    if (department.isNotEmpty) ...[
+                                                      Text(' • ', style: TextStyle(color: Colors.grey.shade400)),
+                                                      Text(
+                                                        department,
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.grey.shade700,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                                if (coursesCount > 0) ...[
+                                                  const SizedBox(height: 6),
+                                                  Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                      color: colorScheme.primaryContainer,
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    child: Text(
+                                                      '$coursesCount ${coursesCount == 1 ? "Course" : "Courses"}',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: colorScheme.primary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                          ),
+                                          PopupMenuButton(
+                                            icon: const Icon(Icons.more_vert),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            itemBuilder: (context) => [
+                                              const PopupMenuItem(
+                                                value: 'edit',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(Icons.edit, size: 20),
+                                                    SizedBox(width: 12),
+                                                    Text('Edit'),
+                                                  ],
+                                                ),
+                                              ),
+                                              const PopupMenuItem(
+                                                value: 'delete',
+                                                child: Row(
+                                                  children: [
+                                                    Icon(Icons.delete, size: 20, color: Colors.red),
+                                                    SizedBox(width: 12),
+                                                    Text('Delete', style: TextStyle(color: Colors.red)),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                            onSelected: (value) {
+                                              if (value == 'edit') {
+                                                _showAddEditDialog(student: student);
+                                              } else if (value == 'delete') {
+                                                _deleteStudent(student['id'], name);
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+          ),
+        ],
+      ),
     );
   }
 }
